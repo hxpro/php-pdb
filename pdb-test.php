@@ -195,7 +195,7 @@ that says "<FONT color="red">fail</font>".</li>
   is in.</li>
   </ul>
 <li>Report the problem to us in the <a
-href="http://sourceforge.net/tracker/?atid=397207&group_id=29740&func=browse">Bug
+href="https://github.com/fidian/php-pdb/issues">Bug
 Tracker</a></li>
 </ol>
 
