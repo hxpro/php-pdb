@@ -1,8 +1,8 @@
 {
   "name": "fidian/phppdb",
-  "description": "description_text",
-  "minimum-stability": "stable",
-  "license": "proprietary",
+  "description": "PHP classes to read/write PalmOS PDB (Palm DataBase) files",
+  "minimum-stability": "dev",
+  "license": "GNU LGPL version 2",
   "authors": [
     {
       "name": "Tyler Akins",
