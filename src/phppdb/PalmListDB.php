@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for List databases.
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -15,15 +15,6 @@
  * Format is for List, presumably all versions
  */
 
-
-/*
- * Define constants
- */
-define('PDB_LIST_FIELD_MAXCHARS', 63);
-define('PDB_LIST_NOTE_MAXCHARS', 1023);
-define('PDB_LIST_FIELD_NAME_MAXCHARS', 16);
-
-
 /*
  * PalmDB Class
  *
@@ -31,17 +22,21 @@ define('PDB_LIST_FIELD_NAME_MAXCHARS', 16);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmListDB extends PalmDB {
+
+	const FIELD_MAXCHARS = 63;
+	const NOTE_MAXCHARS = 1023;
+	const FIELD_NAME_MAXCHARS = 16;
+
 	public $Field1, $Field2;  // Names for the two fields
 	public $DisplayReverse;  // Show Field2, then Field1?
 	public $WriteProtect;  // Write protect the database?
 
 
 	// Creates a new database class
-	public function PalmListDB($Name = '') {
-		PalmDB::PalmDB('DATA', 'LSdb', $Name);
+	public function __construct($Name = '') {
+		PalmDB::__construct('DATA', 'LSdb', $Name);
 		$this->InitializeListDB();
 	}
-
 
 	// Sets all of the variables to a good default value
 	public function InitializeListDB() {
@@ -85,14 +80,14 @@ class PalmListDB extends PalmDB {
 		if (!isset($this->Records[$num][2]))
             $this->Records[$num][2] = '';
 
-		if (strlen($this->Records[$num][0]) > PDB_LIST_FIELD_MAXCHARS)
-            $this->Records[$num][0] = substr($this->Records[$num][0], 0, PDB_LIST_FIELD_MAXCHARS);
+		if (strlen($this->Records[$num][0]) > PalmListDB::FIELD_MAXCHARS)
+            $this->Records[$num][0] = substr($this->Records[$num][0], 0, PalmListDB::FIELD_MAXCHARS);
 
-		if (strlen($this->Records[$num][1]) > PDB_LIST_FIELD_MAXCHARS)
-            $this->Records[$num][1] = substr($this->Records[$num][1], 0, PDB_LIST_FIELD_MAXCHARS);
+		if (strlen($this->Records[$num][1]) > PalmListDB::FIELD_MAXCHARS)
+            $this->Records[$num][1] = substr($this->Records[$num][1], 0, PalmListDB::FIELD_MAXCHARS);
 
-		if (strlen($this->Records[$num][2]) > PDB_LIST_NOTE_MAXCHARS)
-            $this->Records[$num][2] = substr($this->Records[$num][2], 0, PDB_LIST_NOTE_MAXCHARS);
+		if (strlen($this->Records[$num][2]) > PalmListDB::NOTE_MAXCHARS)
+            $this->Records[$num][2] = substr($this->Records[$num][2], 0, PalmListDB::NOTE_MAXCHARS);
 	}
 
 	/* Returns the hex-encoded data for the specified record or the current
@@ -143,10 +138,10 @@ class PalmListDB extends PalmDB {
 		else
             $AppInfo .= $this->Int8(0);
 		$AppInfo .= $this->Int8(0xff);
-		$s = $this->String(substr($this->Field1, 0, PDB_LIST_FIELD_NAME_MAXCHARS));
-		$AppInfo .= $this->PadString($s, PDB_LIST_FIELD_NAME_MAXCHARS);
-		$s = $this->String(substr($this->Field2, 0, PDB_LIST_FIELD_NAME_MAXCHARS));
-		$AppInfo .= $this->PadString($s, PDB_LIST_FIELD_NAME_MAXCHARS);
+		$s = $this->String(substr($this->Field1, 0, PalmListDB::FIELD_NAME_MAXCHARS));
+		$AppInfo .= $this->PadString($s, PalmListDB::FIELD_NAME_MAXCHARS);
+		$s = $this->String(substr($this->Field2, 0, PalmListDB::FIELD_NAME_MAXCHARS));
+		$AppInfo .= $this->PadString($s, PalmListDB::FIELD_NAME_MAXCHARS);
 		$AppInfo .= $this->PadString('', 202);
 		return $AppInfo;
 	}
@@ -156,7 +151,7 @@ class PalmListDB extends PalmDB {
 	 * Return false to signal no error */
 	function LoadAppInfo($fileData) {
 		$this->LoadCategoryData($fileData);
-		$fileData = substr($fileData, PDB_CATEGORY_SIZE - 1);
+		$fileData = substr($fileData, PalmDB::CATEGORY_SIZE - 1);
 
 		/* Compensate for accidentally having the high bit on for some odd
 		 * reason. */
@@ -167,9 +162,9 @@ class PalmListDB extends PalmDB {
 
 		/* We just skipped the unused byte that is supposed to be for
 		 * the last category or last record or something. */
-		$this->Field1 = $this->LoadString($fileData, PDB_LIST_FIELD_NAME_MAXCHARS);
-		$fileData = substr($fileData, PDB_LIST_FIELD_NAME_MAXCHARS);
-		$this->Field2 = $this->LoadString($fileData, PDB_LIST_FIELD_NAME_MAXCHARS);
+		$this->Field1 = $this->LoadString($fileData, PalmListDB::FIELD_NAME_MAXCHARS);
+		$fileData = substr($fileData, PalmListDB::FIELD_NAME_MAXCHARS);
+		$this->Field2 = $this->LoadString($fileData, PalmListDB::FIELD_NAME_MAXCHARS);
 		return false;
 	}
 
@@ -180,11 +175,11 @@ class PalmListDB extends PalmDB {
 		// Skip the first three bytes, then extract three strings.
 		$fileData = substr($fileData, 3);
 		$data = array();
-		$data[0] = $this->LoadString($fileData, PDB_LIST_FIELD_MAXCHARS);
+		$data[0] = $this->LoadString($fileData, PalmListDB::FIELD_MAXCHARS);
 		$fileData = substr($fileData, strlen($data[0]) + 1);
-		$data[1] = $this->LoadString($fileData, PDB_LIST_FIELD_MAXCHARS);
+		$data[1] = $this->LoadString($fileData, PalmListDB::FIELD_MAXCHARS);
 		$fileData = substr($fileData, strlen($data[1]) + 1);
-		$data[2] = $this->LoadString($fileData, PDB_LIST_NOTE_MAXCHARS);
+		$data[2] = $this->LoadString($fileData, PalmListDB::NOTE_MAXCHARS);
 		$this->Records[$recordInfo['UID']] = $data;
 		$this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];
 		return false;

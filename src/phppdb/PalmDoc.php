@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for PalmOS DOC files
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -6,18 +6,19 @@
  * See the doc/LEGAL file for more information
  * See https://github.com/fidian/php-pdb for more information about the library
  */
-define('PDB_DOC_RECORD_SIZE', 4096);
 
 
 class PalmDoc extends PalmDB {
+	const RECORD_SIZE = 4096;
+
 	public $Bookmarks = array();  // Bookmarks stored in the doc file
 
 
 	// $Bookmarks[position] = "name"
 	public $IsCompressed = false;
 	public $CompressedData = array();  // Filled when saving DOC file
-	public function PalmDoc($Title = '', $Compressed = true) {
-		PalmDB::PalmDB('TEXt', 'REAd', $Title);
+	public function __construct($Title = '', $Compressed = true) {
+		parent::__construct('TEXt', 'REAd', $Title);
 		$this->EraseText();
 		$this->IsCompressed = $Compressed;
 	}
@@ -53,16 +54,16 @@ class PalmDoc extends PalmDB {
 		 * real size of the record */
 		$isCompressed = $this->IsCompressed;
 		$this->IsCompressed = false;
-		$SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
+		$SpaceLeft = PalmDoc::RECORD_SIZE - $this->GetRecordSize();
 
 		while ($String) {
 			if ($SpaceLeft > 0) {
 				$this->AppendString($String, $SpaceLeft);
 				$String = substr($String, $SpaceLeft);
-				$SpaceLeft = PDB_DOC_RECORD_SIZE - $this->GetRecordSize();
+				$SpaceLeft = PalmDoc::RECORD_SIZE - $this->GetRecordSize();
 			} else {
 				$this->GoToRecord('+1');
-				$SpaceLeft = PDB_DOC_RECORD_SIZE;
+				$SpaceLeft = PalmDoc::RECORD_SIZE;
 			}
 		}
 
@@ -104,7 +105,7 @@ class PalmDoc extends PalmDB {
 		$this->IsCompressed = $isCompressed;
 		$this->AppendInt32($Content_Length);  // Doc Size
 		$this->AppendInt16($MaxIndex);  // Number of Records
-		$this->AppendInt16(PDB_DOC_RECORD_SIZE);  // Record size
+		$this->AppendInt16(PalmDoc::RECORD_SIZE);  // Record size
 		$this->AppendInt32(0);  // Reserved
 
 		// possibly used for position in doc?
@@ -240,7 +241,6 @@ class PalmDoc extends PalmDB {
 	function CompressRecord($In) {
 		$Out = '';
 		$Literal = '';
-		$pos = 0;
 		$pos = 0;
 
 		while ($pos < strlen($In)) {

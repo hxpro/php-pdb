@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for Todo databases
  * Class donated by Eduardo Pascual Martinez
  *
@@ -31,8 +31,8 @@ class PalmTodoList extends PalmDB {
 
 
 	// Constructor.
-	public function PalmTodoList() {
-		PalmDB::PalmDB('DATA', 'todo', 'ToDoDB');
+	public function __construct() {
+		parent::__construct('DATA', 'todo', 'ToDoDB');
 
 		// Set a default CategoryList array.
 		$this->SetCategoryList(array(
@@ -152,7 +152,7 @@ class PalmTodoList extends PalmDB {
 	/* Returns the size of the AppInfo block.  It is the size of the
 	 * category list plus six bytes. */
 	function GetAppInfoSize() {
-		return PDB_CATEGORY_SIZE + 6;
+		return PalmDB::CATEGORY_SIZE + 6;
 	}
 
 	// Returns the AppInfo block. It is composed of the category list.
@@ -181,7 +181,7 @@ class PalmTodoList extends PalmDB {
 		$this->LoadCategoryData($fileData);
 
 		// Skip past the category information and some unknown data
-		$fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
+		$fileData = substr($fileData, PalmDB::CATEGORY_SIZE + 2);
 		$this->dirty = $this->LoadInt16($fileData);
 		$fileData = substr($fileData, 2);
 		$this->sortOrder = $this->LoadInt8($fileData);

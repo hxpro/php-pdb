@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for List databases.
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -15,13 +15,6 @@
  * Format is for List, presumably all versions
  */
 
-
-/*
- * Define constants
- */
-define('PDB_MEMO_MAXCHARS', 4096);
-
-
 /*
  * PalmDB Class
  *
@@ -29,9 +22,13 @@ define('PDB_MEMO_MAXCHARS', 4096);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmMemo extends PalmDB {
+
+	const MAXCHARS = 4096;
+
+
 	// Creates a new database class
-	public function PalmMemo() {
-		PalmDB::PalmDB('DATA', 'memo', 'MemoDB');
+	public function __construct() {
+		PalmDB::__construct('DATA', 'memo', 'MemoDB');
 	}
 
 
@@ -61,7 +58,7 @@ class PalmMemo extends PalmDB {
 	function SetText($text, $num = false) {
 		if ($num === false)
             $num = $this->CurrentRecord;
-		$this->Records[$num] = $this->String($text, PDB_MEMO_MAXCHARS - 1) . $this->Int8(0);
+		$this->Records[$num] = $this->String($text, PalmMemo::MAXCHARS - 1) . $this->Int8(0);
 	}
 }
 

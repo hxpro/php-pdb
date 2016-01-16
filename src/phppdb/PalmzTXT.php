@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for PalmOS zTXT files
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -9,18 +9,20 @@
  * For the record, this creates "Mode 1" documents.  They will be a bit
  * larger, but they are searchable.
  */
-define('PDB_ZTXT_RECORD_SIZE', 8192);
-define('PDB_ZTXT_ANNOTATION_RECORD_LENGTH', 4096);
-define('PDB_ZTXT_BOOKMARK_NAME_LENGTH', 20);
-define('PDB_ZTXT_BOOKMARK_SIZE', 24);
-define('PDB_ZTXT_ANNOTATION_NAME_LENGTH', 20);
-define('PDB_ZTXT_ANNOTATION_SIZE', 24);
-define('PDB_ZTXT_VERSION', 0x012A);
-define('PDB_ZTXT_FLAG_RANDOM_ACCESS', 0x01);
-define('PDB_ZTXT_FLAG_NONUNIFORM', 0x02);
 
 
 class PalmzTXT extends PalmDB {
+
+	const RECORD_SIZE = 8192;
+	const ANNOTATION_RECORD_LENGTH = 4096;
+	const BOOKMARK_NAME_LENGTH = 20;
+	const BOOKMARK_SIZE = 24;
+	const ANNOTATION_NAME_LENGTH = 20;
+	const ANNOTATION_SIZE = 24;
+	const VERSION = 0x012A;
+	const FLAG_RANDOM_ACCESS = 0x01;
+	const FLAG_NONUNIFORM = 0x02;
+
 	public $Bookmarks = array();  // Bookmarks stored in the zTXT file
 
 
@@ -30,8 +32,8 @@ class PalmzTXT extends PalmDB {
 
 	// $Annotations[position] = array('name' => '...', 'text' => '.....');
 	public $CompressedData = array();  // Filled when saving zTXT file
-	public function PalmzTXT($Title = '') {
-		PalmDB::PalmDB('xTXT', 'GPlm', $Title);
+	public function __construct($Title = '') {
+		parent::__construct('xTXT', 'GPlm', $Title);
 		$this->EraseText();
 	}
 
@@ -64,16 +66,16 @@ class PalmzTXT extends PalmDB {
 
 	// Appends $String to the end of the document
 	public function AddText($String) {
-		$SpaceLeft = PDB_ZTXT_RECORD_SIZE - (strlen($this->Records[$this->CurrentRecord]) / 2);
+		$SpaceLeft = PalmzTXT::RECORD_SIZE - (strlen($this->Records[$this->CurrentRecord]) / 2);
 
 		while ($String) {
 			if ($SpaceLeft > 0) {
 				$this->AppendString($String, $SpaceLeft);
 				$String = substr($String, $SpaceLeft);
-				$SpaceLeft = PDB_ZTXT_RECORD_SIZE - (strlen($this->Records[$this->CurrentRecord]) / 2);
+				$SpaceLeft = PalmzTXT::RECORD_SIZE - (strlen($this->Records[$this->CurrentRecord]) / 2);
 			} else {
 				$this->GoToRecord('+1');
-				$SpaceLeft = PDB_ZTXT_RECORD_SIZE;
+				$SpaceLeft = PalmzTXT::RECORD_SIZE;
 			}
 		}
 	}
@@ -86,10 +88,10 @@ class PalmzTXT extends PalmDB {
 		$this->DeleteRecord();
 		$MaxIndex = count(array_keys($this->Records));
 		$Content = pack('H*', join('', $this->Records));
-		$this->AppendInt16(PDB_ZTXT_VERSION);  // Version
+		$this->AppendInt16(PalmzTXT::VERSION);  // Version
 		$this->AppendInt16($MaxIndex);  // Number of Records
 		$this->AppendInt32(strlen($Content));  // Uncompressed text size
-		$this->AppendInt16(PDB_ZTXT_RECORD_SIZE);  // Uncompressed record size
+		$this->AppendInt16(PalmzTXT::RECORD_SIZE);  // Uncompressed record size
 		if (count($this->Bookmarks)) {
 			$MaxIndex ++;
 			$this->AppendInt16(count($this->Bookmarks));  // # of bookmarks
@@ -105,7 +107,7 @@ class PalmzTXT extends PalmDB {
 			$this->AppendInt32(0);
 		}
 
-		$this->AppendInt8(PDB_ZTXT_FLAG_RANDOM_ACCESS);  // Flags
+		$this->AppendInt8(PalmzTXT::FLAG_RANDOM_ACCESS);  // Flags
 		$this->AppendInt8(0);  // Reserved
 		$this->AppendInt32(crc32($Content));  // CRC
 		$this->AppendInt32(0);  // Padding
@@ -154,13 +156,13 @@ class PalmzTXT extends PalmDB {
 
 		if (count($this->Bookmarks)) {
 			if ($numTemp == 0)
-                return PDB_ZTXT_BOOKMARK_SIZE * count($this->Bookmarks);
+                return PalmzTXT::BOOKMARK_SIZE * count($this->Bookmarks);
 			$numTemp --;
 		}
 
 		if (count($this->Annotations)) {
 			if ($numTemp == 0)
-                return PDB_ZTXT_ANNOTATION_SIZE * count($this->Annotations);
+                return PalmzTXT::ANNOTATION_SIZE * count($this->Annotations);
 			$numTemp --;
 
 			if ($numTemp < count($this->Annotations))
@@ -199,8 +201,8 @@ class PalmzTXT extends PalmDB {
 				// Create the bookmark record
 				foreach ($keys as $offset) {
 					$str .= $this->Int32($offset);
-					$name = $this->String($this->Bookmarks[$offset], PDB_ZTXT_BOOKMARK_NAME_LENGTH);
-					$str .= $this->PadString($name, PDB_ZTXT_BOOKMARK_NAME_LENGTH);
+					$name = $this->String($this->Bookmarks[$offset], PalmzTXT::BOOKMARK_NAME_LENGTH);
+					$str .= $this->PadString($name, PalmzTXT::BOOKMARK_NAME_LENGTH);
 				}
 
 				return $str;
@@ -219,8 +221,8 @@ class PalmzTXT extends PalmDB {
 				// Create the annotations index record
 				foreach ($keys as $offset) {
 					$str .= $this->Int32($offset);
-					$name = $this->String($this->Annotations[$offset]['name'], PDB_ZTXT_ANNOTATION_NAME_LENGTH);
-					$str .= $this->PadString($name, PDB_ZTXT_ANNOTATION_NAME_LENGTH);
+					$name = $this->String($this->Annotations[$offset]['name'], PalmzTXT::ANNOTATION_NAME_LENGTH);
+					$str .= $this->PadString($name, PalmzTXT::ANNOTATION_NAME_LENGTH);
 				}
 
 				return $str;
@@ -316,7 +318,7 @@ class PalmzTXT extends PalmDB {
 			}
 		}
 
-		$this->Bookmarks[$Pos] = substr($Name, 0, PDB_ZTXT_BOOKMARK_NAME_LENGTH);
+		$this->Bookmarks[$Pos] = substr($Name, 0, PalmzTXT::BOOKMARK_NAME_LENGTH);
 		return false;
 	}
 
@@ -343,8 +345,8 @@ class PalmzTXT extends PalmDB {
 		}
 
 		$this->Annotations[$Pos] = array(
-			'name' => substr($Name, 0, PDB_ZTXT_ANNOTATION_NAME_LENGTH),
-			'text' => substr($Text, 0, PDB_ZTXT_ANNOTATION_RECORD_LENGTH)
+			'name' => substr($Name, 0, PalmzTXT::ANNOTATION_NAME_LENGTH),
+			'text' => substr($Text, 0, PalmzTXT::ANNOTATION_RECORD_LENGTH)
 		);
 		return false;
 	}

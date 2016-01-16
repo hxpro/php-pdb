@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* PHP-PDB -- PHP class to write PalmOS databases.
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -14,76 +14,6 @@
  */
 
 
-/*
- * Define constants
- */
-
-
-// Sizes
-define('PDB_HEADER_SIZE', 72);  // Size of the database header
-define('PDB_INDEX_HEADER_SIZE', 6);  // Size of the record index header
-define('PDB_RECORD_HEADER_SIZE', 8);  // Size of the record index entry
-define('PDB_RESOURCE_SIZE', 10);  // Size of the resource index entry
-define('PDB_EPOCH_1904', 2082844800);  // Difference between Palm's time and Unix
-
-
-// Attribute Flags
-define('PDB_ATTRIB_RESOURCE', 0x01);
-define('PDB_ATTRIB_READ_ONLY', 0x02);
-define('PDB_ATTRIB_APPINFO_DIRTY', 0x04);
-define('PDB_ATTRIB_BACKUP', 0x08);
-define('PDB_ATTRIB_OK_NEWER', 0x10);
-define('PDB_ATTRIB_RESET', 0x20);
-define('PDB_ATTRIB_OPEN', 0x40);
-
-
-// Where are 0x80 and 0x100?
-define('PDB_ATTRIB_LAUNCHABLE', 0x200);
-
-
-/* Record Flags
- * The first nibble is reserved for the category number
- * See PDB_CATEGORY_MASK */
-define('PDB_RECORD_ATTRIB_ARCHIVE', 0x08);  // Special -- see below
-define('PDB_RECORD_ATTRIB_PRIVATE', 0x10);
-define('PDB_RECORD_ATTRIB_DELETED', 0x20);
-define('PDB_RECORD_ATTRIB_DIRTY', 0x40);
-define('PDB_RECORD_ATTRIB_EXPUNGED', 0x80);
-define('PDB_RECORD_ATTRIB_DEL_EXP', 0xA0);  // Mask for easier use
-define('PDB_RECORD_ATTRIB_MASK', 0xF0);  // The 4 bytes for the attributes
-define('PDB_RECORD_ATTRIB_CATEGORY_MASK', 0xFF);  // 1 byte
-
-
-/* The archive bit should only be used when the record is deleted or
- * expunged.
- *
- * if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
- *    // Lower 3 bits (0x07) should be 0
- *    if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
- *       echo "Record is deleted/expunged and should be archived.\n";
- *    else
- *       echo "Record is deleted/expunged and should not be archived.\n";
- * } else {
- *    // Lower 4 bits are the category
- *    echo "Record is not deleted/expunged.\n";
- *    echo "Record's category # is " . ($attr & PDB_CATEGORY_MASK) . "\n";
- * }
- */
-
-
-// Category support
-define('PDB_CATEGORY_NUM', 16);  // Number of categories
-define('PDB_CATEGORY_NAME_LENGTH', 16);  // Bytes allocated for name
-define('PDB_CATEGORY_SIZE', 276);  // 2 + (num * length) + num + 1 + 1
-define('PDB_CATEGORY_MASK', 0x0f);  // Bitmask -- use with attribute of record to get the category ID
-
-
-// Double conversion
-define('PDB_DOUBLEMETHOD_UNTESTED', 0);
-define('PDB_DOUBLEMETHOD_NORMAL', 1);
-define('PDB_DOUBLEMETHOD_REVERSE', 2);
-define('PDB_DOUBLEMETHOD_BROKEN', 3);
-
 
 /*
  * PalmDB Class
@@ -92,6 +22,74 @@ define('PDB_DOUBLEMETHOD_BROKEN', 3);
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmDB {
+
+
+// Sizes
+	const HEADER_SIZE = 72;  // Size of the database header
+	const INDEX_HEADER_SIZE = 6;  // Size of the record index header
+	const RECORD_HEADER_SIZE = 8;  // Size of the record index entry
+	const RESOURCE_SIZE = 10;  // Size of the resource index entry
+    const EPOCH_1904 = 2082844800;  // Difference between Palm's time and Unix
+
+
+// Attribute Flags
+	const ATTRIB_RESOURCE = 0x01;
+    const ATTRIB_READ_ONLY = 0x02;
+    const ATTRIB_APPINFO_DIRTY = 0x04;
+    const ATTRIB_BACKUP = 0x08;
+    const ATTRIB_OK_NEWER = 0x10;
+	const ATTRIB_RESET = 0x20;
+    const ATTRIB_OPEN = 0x40;
+
+
+// Where are 0x80 and 0x100?
+	const ATTRIB_LAUNCHABLE = 0x200;
+
+
+	/* Record Flags
+     * The first nibble is reserved for the category number
+     * See PDB_CATEGORY_MASK */
+	const RECORD_ATTRIB_ARCHIVE = 0x08;  // Special -- see below
+    const RECORD_ATTRIB_PRIVATE = 0x10;
+    const RECORD_ATTRIB_DELETED = 0x20;
+	const RECORD_ATTRIB_DIRTY = 0x40;
+	const RECORD_ATTRIB_EXPUNGED = 0x80;
+    const RECORD_ATTRIB_DEL_EXP = 0xA0;  // Mask for easier use
+	const RECORD_ATTRIB_MASK = 0xF0;  // The 4 bytes for the attributes
+	const RECORD_ATTRIB_CATEGORY_MASK = 0xFF;  // 1 byte
+
+
+	/* The archive bit should only be used when the record is deleted or
+     * expunged.
+     *
+     * if ($attr & PDB_RECORD_ATTRIB_DEL_EXP) {
+     *    // Lower 3 bits (0x07) should be 0
+     *    if ($attr & PDB_RECORD_ATTRIB_ARCHIVE)
+     *       echo "Record is deleted/expunged and should be archived.\n";
+     *    else
+     *       echo "Record is deleted/expunged and should not be archived.\n";
+     * } else {
+     *    // Lower 4 bits are the category
+     *    echo "Record is not deleted/expunged.\n";
+     *    echo "Record's category # is " . ($attr & PDB_CATEGORY_MASK) . "\n";
+     * }
+     */
+
+
+// Category support
+	const CATEGORY_NUM = 16;  // Number of categories
+	const CATEGORY_NAME_LENGTH = 16;  // Bytes allocated for name
+	const CATEGORY_SIZE = 276;  // 2 + (num * length) + num + 1 + 1
+	const CATEGORY_MASK = 0x0f;  // Bitmask -- use with attribute of record to get the category ID
+
+
+// Double conversion
+	const DOUBLEMETHOD_UNTESTED = 0;
+	const DOUBLEMETHOD_NORMAL = 1;
+	const DOUBLEMETHOD_REVERSE = 2;
+	const DOUBLEMETHOD_BROKEN = 3;
+
+
 	public $Records = array();  // All of the data from the records is here
 
 
@@ -110,7 +108,7 @@ class PalmDB {
 	public $BackupTime = 0;  // Stored in unix time (Jan 1, 1970)
 	public $AppInfo = '';  // Basic AppInfo block
 	public $SortInfo = '';  // Basic SortInfo block
-	public $DoubleMethod = PDB_DOUBLEMETHOD_UNTESTED;
+	public $DoubleMethod = PalmDB::DOUBLEMETHOD_UNTESTED;
 
 
 	// What method to use for converting doubles
@@ -118,7 +116,7 @@ class PalmDB {
 
 
 	// Creates a new database class
-	public function PalmDB($Type = '', $Creator = '', $Name = '') {
+	public function __construct($Type = '', $Creator = '', $Name = '') {
 		$this->TypeID = $Type;
 		$this->CreatorID = $Creator;
 		$this->Name = $Name;
@@ -141,7 +139,7 @@ class PalmDB {
 
 
 	// Converts a byte and returns the value
-	public function Int8($value) {
+	public static function Int8($value) {
 		$value &= 0xFF;
 		return sprintf('%02x', $value);
 	}
@@ -149,7 +147,7 @@ class PalmDB {
 
 	/* Loads a single byte as a number from the file
 	 * Use if you want to make your own ReadFile function */
-	public function LoadInt8($file) {
+	public static function LoadInt8($file) {
 		if (is_resource($file))
             $string = fread($file, 1);
 		else
@@ -158,14 +156,14 @@ class PalmDB {
 	}
 
 	// Converts an integer (two bytes) and returns the value
-	function Int16($value) {
+	public static function Int16($value) {
 		$value &= 0xFFFF;
 		return sprintf('%02x%02x', $value / 256, $value % 256);
 	}
 
 	/* Loads two bytes as a number from the file
 	 * Use if you want to make your own ReadFile function */
-	function LoadInt16($file) {
+	public static function LoadInt16($file) {
 		if (is_resource($file))
             $string = fread($file, 2);
 		else
@@ -174,14 +172,14 @@ class PalmDB {
 	}
 
 	// Converts an integer (three bytes) and returns the value
-	function Int24($value) {
+	public static function Int24($value) {
 		$value &= 0xFFFFFF;
 		return sprintf('%02x%02x%02x', $value / 65536, ($value / 256) % 256, $value % 256);
 	}
 
 	/* Loads three bytes as a number from the file
 	 * Use if you want to make your own ReadFile function */
-	function LoadInt24($file) {
+	public static function LoadInt24($file) {
 		if (is_resource($file))
             $string = fread($file, 3);
 		else
@@ -192,7 +190,7 @@ class PalmDB {
 	/* Converts an integer (four bytes) and returns the value
 	 * 32-bit integers have problems with PHP when they are bigger than
 	 * 0x80000000 (about 2 billion) and that's why I don't use pack() here */
-	function Int32($value) {
+	public static function Int32($value) {
 		$negative = false;
 
 		if ($value < 0) {
@@ -218,7 +216,7 @@ class PalmDB {
 
 	/* Loads a four-byte string from a file into a number
 	 * Use if you want to make your own ReadFile function */
-	function LoadInt32($file) {
+	public static function LoadInt32($file) {
 		if (is_resource($file))
             $string = fread($file, 4);
 		else
@@ -237,19 +235,19 @@ class PalmDB {
 
 	// Returns the method used for generating doubles
 	function GetDoubleMethod() {
-		if ($this->DoubleMethod != PDB_DOUBLEMETHOD_UNTESTED)
+		if ($this->DoubleMethod != PalmDB::DOUBLEMETHOD_UNTESTED)
             return $this->DoubleMethod;
 		$val = bin2hex(pack('d', 10.53));
 		$val = strtolower($val);
 
 		if (substr($val, 0, 4) == '8fc2')
-            $this->DoubleMethod = PDB_DOUBLEMETHOD_REVERSE;
+            $this->DoubleMethod = PalmDB::DOUBLEMETHOD_REVERSE;
 
 		if (substr($val, 0, 4) == '4025')
-            $this->DoubleMethod = PDB_DOUBLEMETHOD_NORMAL;
+            $this->DoubleMethod = PalmDB::DOUBLEMETHOD_NORMAL;
 
-		if ($this->DoubleMethod == PDB_DOUBLEMETHOD_UNTESTED)
-            $this->DoubleMethod = PDB_DOUBLEMETHOD_BROKEN;
+		if ($this->DoubleMethod == PalmDB::DOUBLEMETHOD_UNTESTED)
+            $this->DoubleMethod = PalmDB::DOUBLEMETHOD_BROKEN;
 		return $this->DoubleMethod;
 	}
 
@@ -259,11 +257,11 @@ class PalmDB {
 	function Double($value) {
 		$method = $this->GetDoubleMethod();
 
-		if ($method == PDB_DOUBLEMETHOD_BROKEN)
+		if ($method == PalmDB::DOUBLEMETHOD_BROKEN)
             return '0000000000000000';
 		$value = bin2hex(pack('d', $value));
 
-		if ($method == PDB_DOUBLEMETHOD_REVERSE)
+		if ($method == PalmDB::DOUBLEMETHOD_REVERSE)
             $value = substr($value, 14, 2) . substr($value, 12, 2) . substr($value, 10, 2) . substr($value, 8, 2) . substr($value, 6, 2) . substr($value, 4, 2) . substr($value, 2, 2) . substr($value, 0, 2);
 		return $value;
 	}
@@ -273,7 +271,7 @@ class PalmDB {
 	function LoadDouble($file) {
 		$method = $this->GetDoubleMethod();
 
-		if ($method == PDB_DOUBLEMETHOD_BROKEN)
+		if ($method == PalmDB::DOUBLEMETHOD_BROKEN)
             return 0.0;
 
 		if (is_resource($file))
@@ -283,7 +281,7 @@ class PalmDB {
 
 		/* Reverse the bytes... this might not be nessesary
 		 * if PHP is running on a big-endian server */
-		if ($method == PDB_DOUBLEMETHOD_REVERSE)
+		if ($method == PalmDB::DOUBLEMETHOD_REVERSE)
             $string = substr($string, 7, 1) . substr($string, 6, 1) . substr($string, 5, 1) . substr($string, 4, 1) . substr($string, 3, 1) . substr($string, 2, 1) . substr($string, 1, 1) . substr($string, 0, 1);
 
 		// Back to binary
@@ -462,7 +460,7 @@ class PalmDB {
             $Rec = $this->CurrentRecord;
 
 		if (isset($this->RecordAttrs[$Rec]))
-            return $this->RecordAttrs[$Rec] & PDB_RECORD_ATTRIB_CATEGORY_MASK;
+            return $this->RecordAttrs[$Rec] & PalmDB::RECORD_ATTRIB_CATEGORY_MASK;
 		return 0;
 	}
 
@@ -506,7 +504,7 @@ class PalmDB {
 			$A = $this->CurrentRecord;
 		}
 
-		$this->RecordAttrs[$A] = $B & PDB_RECORD_ATTRIB_CATEGORY_MASK;
+		$this->RecordAttrs[$A] = $B & PalmDB::RECORD_ATTRIB_CATEGORY_MASK;
 	}
 
 	/* Deletes the specified record or the current record if not specified.
@@ -650,7 +648,7 @@ class PalmDB {
 
 		foreach ($keys as $key) {
 			// If there is room for more categories ...
-			if ($CatsWritten < PDB_CATEGORY_NUM && $key <= 15 && $key >= 0) {
+			if ($CatsWritten < PalmDB::CATEGORY_NUM && $key <= 15 && $key >= 0) {
 				if (is_array($list[$key]) && isset($list[$key]['ID']))
                     $id = $list[$key]['ID'];
 				else
@@ -727,8 +725,8 @@ class PalmDB {
 
 				// Set the name of the category
 				$name = $this->CategoryList[$key]['Name'];
-				$name = $this->String($name, PDB_CATEGORY_NAME_LENGTH);
-				$CategoryStr .= $this->PadString($name, PDB_CATEGORY_NAME_LENGTH);
+				$name = $this->String($name, PalmDB::CATEGORY_NAME_LENGTH);
+				$CategoryStr .= $this->PadString($name, PalmDB::CATEGORY_NAME_LENGTH);
 				$IdStr .= $this->Int8($this->CategoryList[$key]['ID']);
 			} else {
 				// Add blank categories where they are missing
@@ -737,7 +735,7 @@ class PalmDB {
 				while (isset($UsedIds[$UsedIdCheck]))
                     $UsedIdCheck ++;
 				$RenamedFlags *= 2;
-				$CategoryStr .= $this->PadString('', PDB_CATEGORY_NAME_LENGTH);
+				$CategoryStr .= $this->PadString('', PalmDB::CATEGORY_NAME_LENGTH);
 				$IdStr .= $this->Int8($UsedIdCheck);
 			}
 		}
@@ -766,7 +764,7 @@ class PalmDB {
 
 		while ($StartingFlag > 1) {
 			$StartingFlag /= 2;
-			$Name = $this->LoadString(substr($fileData, $Offset, PDB_CATEGORY_NAME_LENGTH), PDB_CATEGORY_NAME_LENGTH);
+			$Name = $this->LoadString(substr($fileData, $Offset, PalmDB::CATEGORY_NAME_LENGTH), PalmDB::CATEGORY_NAME_LENGTH);
 
 			if ($RenamedFlags &$StartingFlag)
                 $RenamedFlag = true;
@@ -776,7 +774,7 @@ class PalmDB {
 				'Name' => $Name,
 				'Renamed' => $RenamedFlag
 			);
-			$Offset += PDB_CATEGORY_NAME_LENGTH;
+			$Offset += PalmDB::CATEGORY_NAME_LENGTH;
 			$key ++;
 		}
 
@@ -835,23 +833,23 @@ class PalmDB {
 
 		// Creation, modification, and backup date
 		if ($this->CreationTime != 0)
-            $header .= $this->Int32($this->CreationTime + PDB_EPOCH_1904);
+            $header .= $this->Int32($this->CreationTime + PalmDB::EPOCH_1904);
 		else
-            $header .= $this->Int32(time() + PDB_EPOCH_1904);
+            $header .= $this->Int32(time() + PalmDB::EPOCH_1904);
 
 		if ($this->ModificationTime != 0)
-            $header .= $this->Int32($this->ModificationTime + PDB_EPOCH_1904);
+            $header .= $this->Int32($this->ModificationTime + PalmDB::EPOCH_1904);
 		else
             $header .= $this->Int32(0);
 
 		if ($this->BackupTime != 0)
-            $header .= $this->Int32($this->BackupTime + PDB_EPOCH_1904);
+            $header .= $this->Int32($this->BackupTime + PalmDB::EPOCH_1904);
 		else
             $header .= $this->Int32(0);
 
 		// Calculate the initial offset
-		$Offset = PDB_HEADER_SIZE + PDB_INDEX_HEADER_SIZE;
-		$Offset += PDB_RECORD_HEADER_SIZE * count($this->GetRecordIDs());
+		$Offset = PalmDB::HEADER_SIZE + PalmDB::INDEX_HEADER_SIZE;
+		$Offset += PalmDB::RECORD_HEADER_SIZE * count($this->GetRecordIDs());
 
 		// Modification number, app information id, sort information id
 		$header .= $this->Int32($this->ModNumber);
@@ -1040,21 +1038,21 @@ class PalmDB {
 		$this->CreationTime = $this->LoadInt32($file);
 
 		if ($this->CreationTime != 0)
-            $this->CreationTime -= PDB_EPOCH_1904;
+            $this->CreationTime -= PalmDB::EPOCH_1904;
 
 		if ($this->CreationTime < 0)
             $this->CreationTime = 0;
 		$this->ModificationTime = $this->LoadInt32($file);
 
 		if ($this->ModificationTime != 0)
-            $this->ModificationTime -= PDB_EPOCH_1904;
+            $this->ModificationTime -= PalmDB::EPOCH_1904;
 
 		if ($this->ModificationTime < 0)
             $this->ModificationTime = 0;
 		$this->BackupTime = $this->LoadInt32($file);
 
 		if ($this->BackupTime != 0)
-            $this->BackupTime -= PDB_EPOCH_1904;
+            $this->BackupTime -= PalmDB::EPOCH_1904;
 
 		if ($this->BackupTime < 0)
             $this->BackupTime = 0;

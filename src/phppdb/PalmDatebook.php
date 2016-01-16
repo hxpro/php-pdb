@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for PalmOS Datebook files
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -6,27 +6,6 @@
  * See the doc/LEGAL file for more information
  * See https://github.com/fidian/php-pdb for more information about the library
  */
-
-
-// Repeat types
-define('PDB_DATEBOOK_REPEAT_NONE', 0);
-define('PDB_DATEBOOK_REPEAT_DAILY', 1);
-define('PDB_DATEBOOK_REPEAT_WEEKLY', 2);
-define('PDB_DATEBOOK_REPEAT_MONTH_BY_DAY', 3);
-define('PDB_DATEBOOK_REPEAT_MONTH_BY_DATE', 4);
-define('PDB_DATEBOOK_REPEAT_YEARLY', 5);
-
-
-// Record flags
-define('PDB_DATEBOOK_FLAG_DESCRIPTION', 1024);  // Record has description
-
-
-// (mandatory, as far as I know)
-define('PDB_DATEBOOK_FLAG_EXCEPTIONS', 2048);  // Are there any exceptions?
-define('PDB_DATEBOOK_FLAG_NOTE', 4096);  // Is there an associated note?
-define('PDB_DATEBOOK_FLAG_REPEAT', 8192);  // Does the event repeat?
-define('PDB_DATEBOOK_FLAG_ALARM', 16384);  // Is there an alarm set?
-define('PDB_DATEBOOK_FLAG_WHEN', 32768);  // Was the 'when' updated?
 
 
 // (Internal use only?)
@@ -114,12 +93,32 @@ define('PDB_DATEBOOK_FLAG_WHEN', 32768);  // Was the 'when' updated?
  * YYYY-MM-DD
  */
 class PalmDatebook extends PalmDB {
+// Repeat types
+	const REPEAT_NONE = 0;
+    const REPEAT_DAILY = 1;
+    const REPEAT_WEEKLY = 2;
+    const REPEAT_MONTH_BY_DAY = 3;
+    const REPEAT_MONTH_BY_DATE = 4;
+	const REPEAT_YEARLY = 5;
+
+
+// Record flags
+	const FLAG_DESCRIPTION = 1024;  // Record has description
+
+
+// (mandatory, as far as I know)
+	const FLAG_EXCEPTIONS = 2048;  // Are there any exceptions?
+    const FLAG_NOTE = 4096;  // Is there an associated note?
+    const FLAG_REPEAT = 8192;  // Does the event repeat?
+    const FLAG_ALARM = 16384;  // Is there an alarm set?
+    const FLAG_WHEN = 32768;  // Was the 'when' updated?
+
 	public $FirstDay;
 
 
 	// Constructor -- initialize the default values
-	public function PalmDatebook() {
-		PalmDB::PalmDB('DATA', 'date', 'DatebookDB');
+	public function __construct() {
+		PalmDB::__construct('DATA', 'date', 'DatebookDB');
 		$this->FirstDay = 0;
 	}
 
@@ -145,23 +144,23 @@ class PalmDatebook extends PalmDB {
 		$Flags = $data['Flags'] % 1024;
 
 		if (isset($data['Description']) && $data['Description'] != '')
-            $Flags += PDB_DATEBOOK_FLAG_DESCRIPTION;
+            $Flags += PalmDatebook::FLAG_DESCRIPTION;
 
 		if (isset($data['Exceptions']) && is_array($data['Exceptions']) && count($data['Exceptions']) > 0)
-            $Flags += PDB_DATEBOOK_FLAG_EXCEPTIONS;
+            $Flags += PalmDatebook::FLAG_EXCEPTIONS;
 
 		if (isset($data['Note']) && $data['Note'] != '')
-            $Flags += PDB_DATEBOOK_FLAG_NOTE;
+            $Flags += PalmDatebook::FLAG_NOTE;
 
 		if (isset($data['Alarm']) && $data['Alarm'] != '' && preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch))
-            $Flags += PDB_DATEBOOK_FLAG_ALARM;
+            $Flags += PalmDatebook::FLAG_ALARM;
 
 		if (isset($data['WhenChanged']) && $data['WhenChanged'] != '' && $data['WhenChanged'])
-            $Flags += PDB_DATEBOOK_FLAG_WHEN;
+            $Flags += PalmDatebook::FLAG_WHEN;
 
 		// Slightly more complex when dealing with the repeat array
-		if (isset($data['Repeat']) && is_array($data['Repeat']) && count($data['Repeat']) > 0 && isset($data['Repeat']['Type']) && $data['Repeat']['Type'] > PDB_DATEBOOK_REPEAT_NONE && $data['Repeat']['Type'] <= PDB_DATEBOOK_REPEAT_YEARLY)
-            $Flags += PDB_DATEBOOK_FLAG_REPEAT;
+		if (isset($data['Repeat']) && is_array($data['Repeat']) && count($data['Repeat']) > 0 && isset($data['Repeat']['Type']) && $data['Repeat']['Type'] > PalmDatebook::REPEAT_NONE && $data['Repeat']['Type'] <= PalmDatebook::REPEAT_YEARLY)
+            $Flags += PalmDatebook::FLAG_REPEAT;
 		$data['Flags'] = $Flags;
 	}
 
@@ -181,19 +180,19 @@ class PalmDatebook extends PalmDB {
 		$Bytes = 8;
 		$this->GetRecordFlags($data);
 
-		if ($data['Flags'] & PDB_DATEBOOK_FLAG_ALARM)
+		if ($data['Flags'] & PalmDatebook::FLAG_ALARM)
             $Bytes += 2;
 
-		if ($data['Flags'] & PDB_DATEBOOK_FLAG_REPEAT)
+		if ($data['Flags'] & PalmDatebook::FLAG_REPEAT)
             $Bytes += 8;
 
-		if ($data['Flags'] & PDB_DATEBOOK_FLAG_EXCEPTIONS)
+		if ($data['Flags'] & PalmDatebook::FLAG_EXCEPTIONS)
             $Bytes += 2 + count($data['Exceptions']) * 2;
 
-		if ($data['Flags'] & PDB_DATEBOOK_FLAG_DESCRIPTION)
+		if ($data['Flags'] & PalmDatebook::FLAG_DESCRIPTION)
             $Bytes += strlen($data['Description']) + 1;
 
-		if ($data['Flags'] & PDB_DATEBOOK_FLAG_NOTE)
+		if ($data['Flags'] & PalmDatebook::FLAG_NOTE)
             $Bytes += strlen($data['Note']) + 1;
 		return $Bytes;
 	}
@@ -248,7 +247,7 @@ class PalmDatebook extends PalmDB {
 		$Flags = $data['Flags'];
 		$RecordString .= $this->Int16($Flags);
 
-		if ($Flags & PDB_DATEBOOK_FLAG_ALARM && preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch)) {
+		if ($Flags & PalmDatebook::FLAG_ALARM && preg_match('/^([0-9]+)([mMhHdD])$/', $data['Alarm'], $AlarmMatch)) {
 			$RecordString .= $this->Int8($AlarmMatch[1]);
 			$AlarmMatch[2] = strtolower($AlarmMatch[2]);
 
@@ -260,7 +259,7 @@ class PalmDatebook extends PalmDB {
                 $RecordString .= $this->Int8(2);
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
+		if ($Flags & PalmDatebook::FLAG_REPEAT) {
 			$d = $data['Repeat'];
 			$RecordString .= $this->Int8($d['Type']);
 
@@ -277,7 +276,7 @@ class PalmDatebook extends PalmDB {
                 $d['Frequency'] = 1;
 			$RecordString .= $this->Int8($d['Frequency']);
 
-			if ($d['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
+			if ($d['Type'] == PalmDatebook::REPEAT_WEEKLY) {
 				$days = $d['Days'];
 				$flags = 0;
 				$QuickLookup = array(
@@ -306,7 +305,7 @@ class PalmDatebook extends PalmDB {
                     $RecordString .= $this->Int8($d['StartOfWeek']);
 				else
                     $RecordString .= $this->Int8(0);
-			} elseif ($d['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
+			} elseif ($d['Type'] == PalmDatebook::REPEAT_MONTH_BY_DAY) {
 				if ($d['WeekNum'] > 5)
                     $d['WeekNum'] = 5;
 				$RecordString .= $this->Int8($d['WeekNum'] * 7 + $d['DayNum']);
@@ -320,7 +319,7 @@ class PalmDatebook extends PalmDB {
 			$RecordString .= $this->Int8($d['unknown2']);
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_EXCEPTIONS) {
+		if ($Flags & PalmDatebook::FLAG_EXCEPTIONS) {
 			$d = $data['Exceptions'];
 			$RecordString .= $this->Int16(count($d));
 
@@ -329,12 +328,12 @@ class PalmDatebook extends PalmDB {
 			}
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
+		if ($Flags & PalmDatebook::FLAG_DESCRIPTION) {
 			$RecordString .= $this->String($data['Description']);
 			$RecordString .= $this->Int8(0);
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
+		if ($Flags & PalmDatebook::FLAG_NOTE) {
 			$RecordString .= $this->String($data['Note']);
 			$RecordString .= $this->Int8(0);
 		}
@@ -345,7 +344,7 @@ class PalmDatebook extends PalmDB {
 	/* Returns the size of the AppInfo block.  It is the size of the
 	 * category list plus four bytes. */
 	function GetAppInfoSize() {
-		return PDB_CATEGORY_SIZE + 4;
+		return PalmDB::CATEGORY_SIZE + 4;
 	}
 
 	/* Returns the AppInfo block.  It is composed of the category list (which
@@ -354,7 +353,7 @@ class PalmDatebook extends PalmDB {
 	 * value is supposed to be, so I just use zero. */
 	function GetAppInfo() {
 		// Category list (Nulls)
-		$this->AppInfo = $this->PadString('', PDB_CATEGORY_SIZE);
+		$this->AppInfo = $this->PadString('', PalmDB::CATEGORY_SIZE);
 
 		/* Unknown thing (first_day_in_week)
 		 * 00 00 FD 00 == where FD is the first day in week.
@@ -368,7 +367,7 @@ class PalmDatebook extends PalmDB {
 	/* Parses $fileData for the information we need when loading a datebook
 	 * file */
 	function LoadAppInfo($fileData) {
-		$fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
+		$fileData = substr($fileData, PalmDB::CATEGORY_SIZE + 2);
 
 		if (strlen($fileData < 1))
             return;
@@ -409,10 +408,10 @@ class PalmDatebook extends PalmDB {
 		$NewRec['Flags'] = $Flags;
 		$fileData = substr($fileData, 8);
 
-		if ($Flags & PDB_DATEBOOK_FLAG_WHEN)
+		if ($Flags & PalmDatebook::FLAG_WHEN)
             $NewRec['WhenChanged'] = true;
 
-		if ($Flags & PDB_DATEBOOK_FLAG_ALARM) {
+		if ($Flags & PalmDatebook::FLAG_ALARM) {
 			$amount = $this->LoadInt8(substr($fileData, 0, 1));
 			$unit = $this->LoadInt8(substr($fileData, 1, 1));
 
@@ -426,7 +425,7 @@ class PalmDatebook extends PalmDB {
 			$fileData = substr($fileData, 2);
 		} else unset($NewRec['Alarm']);
 
-		if ($Flags & PDB_DATEBOOK_FLAG_REPEAT) {
+		if ($Flags & PalmDatebook::FLAG_REPEAT) {
 			$Repeat = array();
 			$Repeat['Type'] = $this->LoadInt8(substr($fileData, 0, 1));
 			$Repeat['unknown1'] = $this->LoadInt8(substr($fileData, 1, 1));
@@ -440,7 +439,7 @@ class PalmDatebook extends PalmDB {
 			if ($End != 65535 && $End >= 0)
                 $Repeat['End'] = $this->Int16ToDate($End);
 
-			if ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_WEEKLY) {
+			if ($Repeat['Type'] == PalmDatebook::REPEAT_WEEKLY) {
 				$days = '';
 
 				if ($RepeatOn & 64)
@@ -465,7 +464,7 @@ class PalmDatebook extends PalmDB {
                     $days .= '6';
 				$Repeat['Days'] = $days;
 				$Repeat['StartOfWeek'] = $RepeatSoW;
-			} elseif ($Repeat['Type'] == PDB_DATEBOOK_REPEAT_MONTH_BY_DAY) {
+			} elseif ($Repeat['Type'] == PalmDatebook::REPEAT_MONTH_BY_DAY) {
 				$Repeat['DayNum'] = $RepeatOn % 7;
 				$RepeatOn /= 7;
 				settype($RepeatOn, 'integer');
@@ -475,7 +474,7 @@ class PalmDatebook extends PalmDB {
 			$NewRec['Repeat'] = $Repeat;
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_EXCEPTIONS) {
+		if ($Flags & PalmDatebook::FLAG_EXCEPTIONS) {
 			$Exceptions = array();
 			$number = $this->LoadInt16(substr($fileData, 0, 2));
 			$fileData = substr($fileData, 2);
@@ -489,7 +488,7 @@ class PalmDatebook extends PalmDB {
 			$NewRec['Exceptions'] = $Exceptions;
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_DESCRIPTION) {
+		if ($Flags & PalmDatebook::FLAG_DESCRIPTION) {
 			$i = 0;
 			$NewRec['Description'] = '';
 
@@ -501,7 +500,7 @@ class PalmDatebook extends PalmDB {
 			$fileData = substr($fileData, $i + 1);
 		}
 
-		if ($Flags & PDB_DATEBOOK_FLAG_NOTE) {
+		if ($Flags & PalmDatebook::FLAG_NOTE) {
 			$i = 0;
 			$NewRec['Note'] = '';
 

@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for PDA Toolbox databases
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -17,11 +17,11 @@
  *   $array[0] =
  *   $array[1] =
  */
-class PalmDatebook extends PalmDB {
+class PalmToolbox extends PalmDB {
 	// Constructor -- initialize the default values
-	public function PalmDatebook($CreatorID, $Name = '') {
+	public function __construct($CreatorID, $Name = '') {
 		// Are all called TOUR ?
-		PalmDB('TOUR', $CreatorID, $Name);
+		parent::__construct('TOUR', $CreatorID, $Name);
 	}
 
 

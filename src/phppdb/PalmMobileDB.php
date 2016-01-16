@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for Handmark MobileDB databases.
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -15,21 +15,18 @@
 
 
 /*
- * Define constants
- */
-define('PDB_MOBILEDB_DBVERSION', 3);  // As of Nov 22, 2001, the docs lie.
-define('PDB_MOBILEDB_FILTER_TEXT_LENGTH', 40);
-define('PDB_MOBILEDB_FILTER_LENGTH', 44);
-define('PDB_MOBILEDB_SORT_LENGTH', 4);
-
-
-/*
  * PalmDB Class
  *
  * Contains all of the required methods and variables to write a pdb file.
  * Extend this class to provide functionality for memos, addresses, etc.
  */
 class PalmMobileDB extends PalmDB {
+
+	const DBVERSION = 3;  // As of Nov 22, 2001, the docs lie.
+	const FILTER_TEXT_LENGTH = 40;
+	const FILTER_LENGTH = 44;
+	const SORT_LENGTH = 4;
+
 	public $MobileDBVersion;  // Version number
 	public $MobileDBLock;  // Hash of password
 	public $MobileDBDontSearch;  // True = DB is invisible to Find
@@ -45,8 +42,8 @@ class PalmMobileDB extends PalmDB {
 
 
 	// Creates a new database class
-	public function PalmMobileDB($Name = '') {
-		PalmDB::PalmDB('Mdb1', 'Mdb1', $Name);
+	public function __construct($Name = '') {
+		parent::__construct('Mdb1', 'Mdb1', $Name);
 		$this->InitializeMobileDB();
 	}
 
@@ -62,7 +59,7 @@ class PalmMobileDB extends PalmDB {
 				'DataType',
 				'FieldLengths'
 			));
-		$this->MobileDBVersion = PDB_MOBILEDB_DBVERSION;
+		$this->MobileDBVersion = PalmMobileDB::DBVERSION;
 		$this->MobileDBLock = 0;
 		$this->MobileDBDontSearch = 0;
 		$this->MobileDBEditOnSelect = 0;
@@ -146,7 +143,7 @@ class PalmMobileDB extends PalmDB {
 	function GetAppInfoSize() {
 		/* The "+ 6" after the category size is for the MobileDB Version & lock
 		 * The "+ 2" at the end gets the AppInfo to a 4-byte boundary. */
-		return PDB_CATEGORY_SIZE + 6 + (PDB_MOBILEDB_FILTER_LENGTH * 3) + (PDB_MOBILEDB_SORT_LENGTH * 3) + 2;
+		return PalmDB::CATEGORY_SIZE + 6 + (PalmMobileDB::FILTER_LENGTH * 3) + (PalmMobileDB::SORT_LENGTH * 3) + 2;
 	}
 
 	// Returns the AppInfo block
@@ -167,8 +164,8 @@ class PalmMobileDB extends PalmDB {
                 );
 
 			// Not sure if they require null termination
-			$textStr = $this->String($filter[0], PDB_MOBILEDB_FILTER_TEXT_LENGTH);
-			$AppInfo .= $this->PadString($textStr, PDB_MOBILEDB_FILTER_TEXT_LENGTH);
+			$textStr = $this->String($filter[0], PalmMobileDB::FILTER_TEXT_LENGTH);
+			$AppInfo .= $this->PadString($textStr, PalmMobileDB::FILTER_TEXT_LENGTH);
 			$AppInfo .= $this->Int8($filter[1]);
 			$AppInfo .= $this->Int8($filter[2]);
 
@@ -204,11 +201,11 @@ class PalmMobileDB extends PalmDB {
 	 * Return false to signal no error */
 	function LoadAppInfo($fileData) {
 		$this->LoadCategoryData($fileData);
-		$fileData = substr($fileData, PDB_CATEGORY_SIZE);
+		$fileData = substr($fileData, PalmDB::CATEGORY_SIZE);
 		$this->MobileDBVersion = $this->LoadInt16($fileData);
 
 		// WARNING -- this is short-circuited
-		if ($this->MobileDBVersion != PDB_MOBILEDB_DBVERSION) {
+		if ($this->MobileDBVersion != PalmMobileDB::DBVERSION) {
 			$this->InitializeMobileDB();
 			return false;
 		}
@@ -218,16 +215,16 @@ class PalmMobileDB extends PalmDB {
 		$fileData = substr($fileData, 4);
 		$this->MobileDBFilters = array();
 		$this->MobileDBFilters[] = $this->LoadAppInfo_Filter($fileData);
-		$fileData = substr($fileData, PDB_MOBILEDB_FILTER_LENGTH);
+		$fileData = substr($fileData, PalmMobileDB::FILTER_LENGTH);
 		$this->MobileDBFilters[] = $this->LoadAppInfo_Filter($fileData);
-		$fileData = substr($fileData, PDB_MOBILEDB_FILTER_LENGTH);
+		$fileData = substr($fileData, PalmMobileDB::FILTER_LENGTH);
 		$this->MobileDBFilters[] = $this->LoadAppInfo_Filter($fileData);
-		$fileData = substr($fileData, PDB_MOBILEDB_FILTER_LENGTH);
+		$fileData = substr($fileData, PalmMobileDB::FILTER_LENGTH);
 		$this->MobileDBSort = array();
 		$this->MobileDBSort[] = $this->LoadAppInfo_Sort($fileData);
-		$fileData = substr($fileData, PDB_MOBILEDB_SORT_LENGTH);
+		$fileData = substr($fileData, PalmMobileDB::SORT_LENGTH);
 		$this->MobileDBSort[] = $this->LoadAppInfo_Sort($fileData);
-		$fileData = substr($fileData, PDB_MOBILEDB_SORT_LENGTH);
+		$fileData = substr($fileData, PalmMobileDB::SORT_LENGTH);
 		$this->MobileDBSort[] = $this->LoadAppInfo_Sort($fileData);
 		return false;
 	}
@@ -237,16 +234,16 @@ class PalmMobileDB extends PalmDB {
 		$text = false;
 
 		// I'm not sure if they require null termination
-		for ($i = 0; $i < PDB_MOBILEDB_FILTER_TEXT_LENGTH; $i ++) {
+		for ($i = 0; $i < PalmMobileDB::FILTER_TEXT_LENGTH; $i ++) {
 			if (bin2hex($data[$i]) == '00') {
 				$text = substr($data, 0, $i);
-				$i = PDB_MOBILEDB_FILTER_TEXT_LENGTH;
+				$i = PalmMobileDB::FILTER_TEXT_LENGTH;
 			}
 		}
 
 		if ($text === false)
-            $text = substr($data, 0, PDB_MOBILEDB_FILTER_TEXT_LENGTH);
-		$data = substr($data, PDB_MOBILEDB_FILTER_TEXT_LENGTH);
+            $text = substr($data, 0, PalmMobileDB::FILTER_TEXT_LENGTH);
+		$data = substr($data, PalmMobileDB::FILTER_TEXT_LENGTH);
 		$fieldNo = $this->LoadInt8($data);
 		$data = substr($data, 1);
 		$flags = $this->LoadInt8($data);
@@ -276,7 +273,7 @@ class PalmMobileDB extends PalmDB {
 	 * Return false to signal no error */
 	function LoadRecord($fileData, $recordInfo) {
 		// There should be no 'Unfiled' records
-		if ($recordInfo['Attrs'] & PDB_CATEGORY_MASK == 0)
+		if ($recordInfo['Attrs'] & PalmDB::CATEGORY_MASK == 0)
             return true;
 		$d = $this->LoadInt32($fileData);
 
@@ -308,13 +305,13 @@ class PalmMobileDB extends PalmDB {
 		}
 
 		// Now that we have the data, just put it in the right spot.
-		if (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 1)
+		if (($recordInfo['Attrs'] & PalmDB::CATEGORY_MASK) == 1)
             $this->FieldLabels = $recordInfo['UID'];
-		elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 4)
+		elseif (($recordInfo['Attrs'] & PalmDB::CATEGORY_MASK) == 4)
             $this->Preferences = $recordInfo['UID'];
-		elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 5)
+		elseif (($recordInfo['Attrs'] & PalmDB::CATEGORY_MASK) == 5)
             $this->DataType = $recordInfo['UID'];
-		elseif (($recordInfo['Attrs'] & PDB_CATEGORY_MASK) == 6)
+		elseif (($recordInfo['Attrs'] & PalmDB::CATEGORY_MASK) == 6)
             $this->FieldLengths = $recordInfo['UID'];
 		$this->Records[$recordInfo['UID']] = $SaveInfo;
 		$this->RecordAttrs[$recordInfo['UID']] = $recordInfo['Attrs'];

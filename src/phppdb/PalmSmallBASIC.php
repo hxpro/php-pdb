@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for SmallBASIC source files
  *
  * Copyright (C) 2001 - PHP-PDB development team
@@ -6,14 +6,16 @@
  * See the doc/LEGAL file for more information
  * See https://github.com/fidian/php-pdb for more information about the library
  */
-define('PDB_SMALLBASIC_MAIN_SECTION', 'Main');
-define('PDB_SMALLBASIC_MAX_SECTION', 32766);
-define('PDB_SMALLBASIC_FILE_VERSION', 4);
 
 
 class PalmSmallBASIC extends PalmDB {
-	public function PalmSmallBASIC($Title = '') {
-		PalmDB::PalmDB('TEXT', 'SmBa', $Title);
+
+	const MAIN_SECTION = 'Main';
+	const MAX_SECTION = 32766;
+	const FILE_VERSION = 4;
+
+	public function __construct($Title = '') {
+		PalmDB::__construct('TEXT', 'SmBa', $Title);
 		$this->Records = array();
 	}
 
@@ -21,14 +23,14 @@ class PalmSmallBASIC extends PalmDB {
 	/* Returns a giant string that can be saved to a file and loaded by
 	 * other SmallBASIC interpreters */
 	public function ConvertToText() {
-		$RecordNames = $this->GetOrderedSectionNames;
+		$RecordNames = $this->GetOrderedSectionNames();
 		$String = '';
 
 		foreach ($RecordNames as $Name) {
 			if ($String != '')
                 $String .= "\n";
 
-			if ($Name == PDB_SMALLBASIC_MAIN_SECTION) {
+			if ($Name == PalmSmallBASIC::MAIN_SECTION) {
 				$Data = explode("\n", $this->Records[$Name], 2);
 
 				if ($Data[0][0] == '#') {
@@ -59,7 +61,7 @@ class PalmSmallBASIC extends PalmDB {
 		$String = str_replace("\r\n", "\n", $String);
 		$String = str_replace("\r", "\n", $String);
 		$Lines = explode("\n", $String);
-		$ThisName = PDB_SMALLBASIC_MAIN_SECTION;
+		$ThisName = PalmSmallBASIC::MAIN_SECTION;
 
 		while (count($Lines)) {
 			if (strncmp($Lines[0], '#sec:', 5) == 0) {
@@ -77,7 +79,7 @@ class PalmSmallBASIC extends PalmDB {
 		$SectionNames = $this->GetOrderedSectionNames();
 
 		foreach ($SectionNames as $index => $Name) {
-			if (strlen($this->Records[$Name]) > PDB_SMALLBASIC_MAX_SECTION)
+			if (strlen($this->Records[$Name]) > PalmSmallBASIC::MAX_SECTION)
                 return array(
                     $index,
                     $this->Records[$Name],
@@ -94,19 +96,19 @@ class PalmSmallBASIC extends PalmDB {
 		$keys = array_keys($this->Records);
 		sort($keys);
 
-		if (!isset($this->Records[PDB_SMALLBASIC_MAIN_SECTION]) || $keys[0] == PDB_SMALLBASIC_MAIN_SECTION)
+		if (!isset($this->Records[PalmSmallBASIC::MAIN_SECTION]) || $keys[0] == PalmSmallBASIC::MAIN_SECTION)
             return $keys;
 		$SkipName = $keys[0];
 		$index = 1;
 
-		while ($keys[$index] != PDB_SMALLBASIC_MAIN_SECTION)
+		while ($keys[$index] != PalmSmallBASIC::MAIN_SECTION)
             $index ++;
 
 		while ($index) {
 			$keys[$index] = $keys[$index - 1];
 		}
 
-		$keys[0] = PDB_SMALLBASIC_MAIN_SECTION;
+		$keys[0] = PalmSmallBASIC::MAIN_SECTION;
 		return $keys;
 	}
 
@@ -140,14 +142,14 @@ class PalmSmallBASIC extends PalmDB {
             return '';
 		$Str = $this->String('S');  // Sign
 		$Str .= $this->Int8(0);  // Unused
-		$Str .= $this->Int16(PDB_SMALLBASIC_FILE_VERSION);  // version
+		$Str .= $this->Int16(PalmSmallBASIC::FILE_VERSION);  // version
 
 		// Not sure if this is always the same as the one in the
 
 		// header.  Since it was the same when I was given the specs,
 
 		// I just used the define()d value.
-		if ($keys[$num] == PDB_SMALLBASIC_MAIN_SECTION)
+		if ($keys[$num] == PalmSmallBASIC::MAIN_SECTION)
             $Str .= $this->Int16(1);  // Flags (1 for main section)
 		else
             $Str .= $this->Int16(0);  // Flags (0 for every other section)
@@ -155,7 +157,7 @@ class PalmSmallBASIC extends PalmDB {
 		$name = substr($name, 0, 63);  // Trim if it is too long of a name
 		$Str .= $this->PadString($name, 64);
 		$code = $this->Records[$keys[$num]];
-		$code = substr($code, 0, PDB_SMALLBASIC_MAX_SECTION);
+		$code = substr($code, 0, PalmSmallBASIC::MAX_SECTION);
 		$Str .= $this->String($code);
 		return $Str . '00';
 	}
@@ -163,7 +165,7 @@ class PalmSmallBASIC extends PalmDB {
 	// Returns what should be record zero
 	function CreateRecordZero() {
 		$Str = $this->String('H');  // Sign
-		$Str .= $this->Int8(PDB_SMALLBASIC_FILE_VERSION);
+		$Str .= $this->Int8(PalmSmallBASIC::FILE_VERSION);
 		$Str .= '0000';  // First byte = unused.
 
 		// Second = category (unfiled)

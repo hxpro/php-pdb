@@ -1,4 +1,4 @@
-<?php
+<?php namespace phppdb;
 /* Class extender for Address Book databases
  * Class donated by Eduardo Pascual Martinez
  *
@@ -7,51 +7,6 @@
  * See the doc/LEGAL file for more information
  * See https://github.com/fidian/php-pdb for more information about the library
  */
-define('PDB_ADDR_LABEL_LENGTH', 16);
-define('PDB_ADDR_NUM_LABELS', 22);
-
-
-// Countries
-define('PDB_ADDR_COUNTRY_AUSTRALIA', 1);
-define('PDB_ADDR_COUNTRY_AUSTRIA', 2);
-define('PDB_ADDR_COUNTRY_BELGIUM', 3);
-define('PDB_ADDR_COUNTRY_BRAZIL', 4);
-define('PDB_ADDR_COUNTRY_CANADA', 5);
-define('PDB_ADDR_COUNTRY_DENMARK', 6);
-define('PDB_ADDR_COUNTRY_FINLAND', 7);
-define('PDB_ADDR_COUNTRY_FRANCE', 8);
-define('PDB_ADDR_COUNTRY_GERMANY', 9);
-define('PDB_ADDR_COUNTRY_HONG_KONG', 10);
-define('PDB_ADDR_COUNTRY_ICELAND', 11);
-define('PDB_ADDR_COUNTRY_IRELAND', 12);
-define('PDB_ADDR_COUNTRY_ITALY', 13);
-define('PDB_ADDR_COUNTRY_JAPAN', 14);
-define('PDB_ADDR_COUNTRY_LUXEMBOURG', 15);
-define('PDB_ADDR_COUNTRY_MEXICO', 16);
-define('PDB_ADDR_COUNTRY_NETHERLANDS', 17);
-define('PDB_ADDR_COUNTRY_NEW_ZEALAND', 18);
-define('PDB_ADDR_COUNTRY_NORWAY', 19);
-define('PDB_ADDR_COUNTRY_SPAIN', 20);
-define('PDB_ADDR_COUNTRY_SWEDEN', 21);
-define('PDB_ADDR_COUNTRY_SWITZERLAND', 22);
-define('PDB_ADDR_COUNTRY_UNITED_KINDOM', 23);
-define('PDB_ADDR_COUNTRY_UNITED_STATES', 24);
-
-
-// Change this to match your locale
-define('PDB_ADDR_COUNTRY_DEFAULT', PDB_ADDR_COUNTRY_UNITED_STATES);
-
-
-// Phone labels index
-define('PDB_ADDR_LABEL_WORK', 0);
-define('PDB_ADDR_LABEL_HOME', 1);
-define('PDB_ADDR_LABEL_FAX', 2);
-define('PDB_ADDR_LABEL_OTHER', 3);
-define('PDB_ADDR_LABEL_EMAIL', 4);
-define('PDB_ADDR_LABEL_MAIN', 5);
-define('PDB_ADDR_LABEL_PAGER', 6);
-define('PDB_ADDR_LABEL_MOBILE', 7);
-
 
 /* The data for SetRecordRaw and from GetRecordRaw should be/return a
  * special array, detailed below.  All values are optional.  Also, the labels
@@ -103,6 +58,53 @@ define('PDB_ADDR_LABEL_MOBILE', 7);
  *  PDB_ADDR_LABEL_MOBILE
  */
 class PalmAddress extends PalmDB {
+
+	const LABEL_LENGTH = 16;
+	const NUM_LABELS = 22;
+
+
+// Countries
+	const COUNTRY_AUSTRALIA = 1;
+	const COUNTRY_AUSTRIA = 2;
+	const COUNTRY_BELGIUM = 3;
+	const COUNTRY_BRAZIL = 4;
+	const COUNTRY_CANADA = 5;
+	const COUNTRY_DENMARK = 6;
+	const COUNTRY_FINLAND = 7;
+	const COUNTRY_FRANCE = 8;
+	const COUNTRY_GERMANY = 9;
+	const COUNTRY_HONG_KONG = 10;
+	const COUNTRY_ICELAND = 11;
+	const COUNTRY_IRELAND = 12;
+	const COUNTRY_ITALY = 13;
+	const COUNTRY_JAPAN = 14;
+	const COUNTRY_LUXEMBOURG = 15;
+	const COUNTRY_MEXICO = 16;
+	const COUNTRY_NETHERLANDS = 17;
+	const COUNTRY_NEW_ZEALAND = 18;
+	const COUNTRY_NORWAY = 19;
+	const COUNTRY_SPAIN = 20;
+	const COUNTRY_SWEDEN = 21;
+	const COUNTRY_SWITZERLAND = 22;
+	const COUNTRY_UNITED_KINDOM = 23;
+	const COUNTRY_UNITED_STATES = 24;
+
+
+// Change this to match your locale
+	const COUNTRY_DEFAULT = PalmAddress::COUNTRY_UNITED_STATES;
+
+
+// Phone labels index
+	const LABEL_WORK = 0;
+	const LABEL_HOME = 1;
+	const LABEL_FAX = 2;
+	const LABEL_OTHER = 3;
+	const LABEL_EMAIL = 4;
+	const LABEL_MAIN = 5;
+	const LABEL_PAGER = 6;
+	const LABEL_MOBILE = 7;
+
+
 	/* List of field keys that contribute to the record length
 	 * Only the ones that have string data go in here
 	 * Key = name of key in $record array, Value = bit in field map */
@@ -155,15 +157,15 @@ class PalmAddress extends PalmDB {
 		'Custom4' => 'Custom 4',
 		'Note' => 'Note'
 	);
-	public $country = PDB_ADDR_COUNTRY_DEFAULT;  // Default country.
+	public $country = PalmAddress::COUNTRY_DEFAULT;  // Default country.
 	public $dirtyFields = 0;  // Unknown appinfo 4 bytes
 	public $misc = 0;  // Unknown appinfo byte
 
 
 	/* Constructor.
 	 * $country is the Country for which the labels where designed. */
-	public function PalmAddress($country = PDB_ADDR_COUNTRY_DEFAULT) {
-		PalmDB::PalmDB('DATA', 'addr', 'AddressDB');
+	public function __construct($country = PalmAddress::COUNTRY_DEFAULT) {
+		PalmDB::__construct('DATA', 'addr', 'AddressDB');
 		$this->country = $country;
 		$this->SetCategoryList(array());
 	}
@@ -178,15 +180,15 @@ class PalmAddress extends PalmDB {
 			'FirstName' => '',
 			'Company' => '',
 			'Phone1' => '',
-			'Phone1Type' => PDB_ADDR_LABEL_WORK,
+			'Phone1Type' => PalmAddress::LABEL_WORK,
 			'Phone2' => '',
-			'Phone2Type' => PDB_ADDR_LABEL_HOME,
+			'Phone2Type' => PalmAddress::LABEL_HOME,
 			'Phone3' => '',
-			'Phone3Type' => PDB_ADDR_LABEL_FAX,
+			'Phone3Type' => PalmAddress::LABEL_FAX,
 			'Phone4' => '',
-			'Phone4Type' => PDB_ADDR_LABEL_OTHER,
+			'Phone4Type' => PalmAddress::LABEL_OTHER,
 			'Phone5' => '',
-			'Phone5Type' => PDB_ADDR_LABEL_EMAIL,
+			'Phone5Type' => PalmAddress::LABEL_EMAIL,
 			'Address' => '',
 			'City' => '',
 			'State' => '',
@@ -304,11 +306,11 @@ class PalmAddress extends PalmDB {
 
 		foreach (array(
 				'Priority' => 1,
-				'Phone1Type' => PDB_ADDR_LABEL_WORK,
-				'Phone2Type' => PDB_ADDR_LABEL_HOME,
-				'Phone3Type' => PDB_ADDR_LABEL_FAX,
-				'Phone4Type' => PDB_ADDR_LABEL_OTHER,
-				'Phone5Type' => PDB_ADDR_LABEL_EMAIL,
+				'Phone1Type' => PalmAddress::LABEL_WORK,
+				'Phone2Type' => PalmAddress::LABEL_HOME,
+				'Phone3Type' => PalmAddress::LABEL_FAX,
+				'Phone4Type' => PalmAddress::LABEL_OTHER,
+				'Phone5Type' => PalmAddress::LABEL_EMAIL,
 				'Display' => 1,
 				'Reserved' => ''
 			) as $k => $v) {
@@ -323,10 +325,10 @@ class PalmAddress extends PalmDB {
 	// Returns the size of the AppInfo block.
 	function GetAppInfoSize() {
 		// Standard category size + reserved (2) + dirty fields (4)
-		$AppInfoSize = PDB_CATEGORY_SIZE + 6;
+		$AppInfoSize = PalmDB::CATEGORY_SIZE + 6;
 
 		// Field labels
-		$AppInfoSize += PDB_ADDR_LABEL_LENGTH * PDB_ADDR_NUM_LABELS;
+		$AppInfoSize += PalmAddress::LABEL_LENGTH * PalmAddress::NUM_LABELS;
 
 		/* Country code (1)
 		 * misc (1)
@@ -353,8 +355,8 @@ class PalmAddress extends PalmDB {
 		$keys[] = 'Phone8';
 
 		foreach ($keys as $k) {
-			$field = $this->String($this->Labels[$k], PDB_ADDR_LABEL_LENGTH - 1);
-			$AppInfo .= $this->PadString($field, PDB_ADDR_LABEL_LENGTH);
+			$field = $this->String($this->Labels[$k], PalmAddress::LABEL_LENGTH - 1);
+			$AppInfo .= $this->PadString($field, PalmAddress::LABEL_LENGTH);
 		}
 
 		// Country code
@@ -393,7 +395,7 @@ class PalmAddress extends PalmDB {
 		$this->LoadCategoryData($fileData);
 
 		// The first 2 bytes after the categories are "reserved" (nulls)
-		$fileData = substr($fileData, PDB_CATEGORY_SIZE + 2);
+		$fileData = substr($fileData, PalmDB::CATEGORY_SIZE + 2);
 		$this->dirtyFields = $this->LoadInt32($fileData);
 		$fileData = substr($fileData, 4);
 
@@ -404,9 +406,9 @@ class PalmAddress extends PalmDB {
 		$keys[] = 'Phone8';
 
 		foreach ($keys as $k) {
-			$this->Labels[$k] = substr($fileData, 0, PDB_ADDR_LABEL_LENGTH);
+			$this->Labels[$k] = substr($fileData, 0, PalmAddress::LABEL_LENGTH);
 			$this->Labels[$k] = rtrim($this->Labels[$k]);
-			$fileData = substr($fileData, PDB_ADDR_LABEL_LENGTH);
+			$fileData = substr($fileData, PalmAddress::LABEL_LENGTH);
 		}
 
 		$this->country = $this->LoadInt8($fileData);
