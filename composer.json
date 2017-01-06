@@ -2,6 +2,7 @@
   "name": "fidian/phppdb",
   "description": "PHP classes to read/write PalmOS PDB (Palm DataBase) files",
   "minimum-stability": "dev",
+  "type": "library",
   "license": "GNU LGPL version 2",
   "authors": [
     {
